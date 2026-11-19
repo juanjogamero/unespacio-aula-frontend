@@ -23,7 +23,8 @@ jobs:
           node-version: '22'
       - run: npm install --ignore-scripts --no-audit --no-fund
       - run: npm run check
-      - run: node scripts/build-pages.mjs
+      # Ejecutar mediante npm incorpora node_modules/.bin al PATH (incluye tsc).
+      - run: npm run pages:build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
