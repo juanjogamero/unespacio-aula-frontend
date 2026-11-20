@@ -68,3 +68,5 @@ test('Las clases del alumno son enlaces a su agenda y los materiales conservan e
  assert.doesNotMatch(x,/<svg onload=/);
  assert.match(x,/&lt;svg onload=/);
 });
+
+test('Alumno tiene inicio compacto con tareas, materias y agenda',()=>{const html=studentHome(snapshot);assert.match(html,/ua-student-home/);assert.match(html,/ua-student-next/);assert.match(html,/ua-learning-grid/);assert.doesNotMatch(html,/study-feature-visual/);});

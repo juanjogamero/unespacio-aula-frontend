@@ -35,3 +35,8 @@ Todas las mutaciones requieren sesión válida y CSRF. Validar datos y pertenenc
 ## Límites
 
 No hay servidor implementado en este repositorio. El entorno de desarrollo es una implementación de navegador aislada, no una API ni almacenamiento entre usuarios reales.
+
+
+### Planificación semanal (frontend)
+
+El formulario permite solicitar `recurring: true` para crear una serie semanal. En desarrollo local se generan ocho sesiones, cada siete días, guardadas únicamente en el navegador para comprobar la agenda. El backend del VPS deberá validar autorización, fechas, duración, recurrencia y creación de la serie de forma transaccional antes de permitir datos reales; este comportamiento NO constituye una programación multiusuario segura.

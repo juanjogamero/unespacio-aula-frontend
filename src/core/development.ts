@@ -117,7 +117,13 @@ export class DevelopmentGateway implements Gateway {
   else submissions.push({id:`sub${uid++}`,assignmentId:input.assignmentId,studentId:'lucia',text:input.text,status:'submitted',submittedAt:new Date().toISOString(),fileName:input.file?.name});
   this.persist();}
  async grade(input:GradeInput){this.requireTeacher();const s=submissions.find(s=>s.id===input.submissionId),a=s&&assignments.find(a=>a.id===s.assignmentId);if(!s||!a)throw new Error('Entrega no encontrada.');this.validateScope(a);s.score=clampScore(input.score);s.feedback=input.feedback.slice(0,2000);s.status='reviewed';this.persist();}
- async saveLesson(input:LessonInput){this.requireTeacher();this.validateScope(input);if(!input.subject||!input.start||!input.end)throw new Error('Completa la materia y las fechas.');lessons.push({id:`l${uid++}`,...input});this.persist();}
+ async saveLesson(input:LessonInput){this.requireTeacher();this.validateScope(input);if(!input.subject||!input.start||!input.end)throw new Error('Completa la materia y las fechas.');
+ const start=new Date(input.start),end=new Date(input.end);
+ if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||end<=start)throw new Error('La finalización debe ser posterior al inicio.');
+ const fmt=(d:Date)=>{const p=(n:number)=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());};
+ const total=input.recurring?8:1;
+ for(let i=0;i<total;i++){const a=new Date(start),b=new Date(end);a.setDate(start.getDate()+7*i);b.setDate(end.getDate()+7*i);lessons.push({id:`l${uid++}`,...input,start:fmt(a),end:fmt(b),recurring:!!input.recurring});}
+ this.persist();}
  async updateLesson(id:string,input:LessonInput){this.requireTeacher();const lesson=lessons.find(x=>x.id===id);if(!lesson)throw new Error('Sesión no encontrada.');this.validateScope(lesson);Object.assign(lesson,input);this.persist();}
  async openSubmission(submission:Submission){const file=await readLocalFile(`submission:${submission.assignmentId}:${submission.studentId}`);return file?URL.createObjectURL(file):null;}
  async openMaterial(material:Material){if(material.kind==='file'){const file=this.uploads.get(material.id)||await readLocalFile(`material:${material.id}`);return file?URL.createObjectURL(file):null;}return material.kind==='link'?safeExternalUrl(material.url||''):null;}

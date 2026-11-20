@@ -23,3 +23,6 @@ test('Profesor particular trabaja por alumno y no por grupos obligatorios',()=>{
 test('La administración dispone de grupos y calendario sin crear módulos nuevos',()=>{
  const html=adminHome(snap);assert.match(html,/work-admin-home/);assert.match(html,/Nuevo grupo/);assert.match(html,/work-class/);assert.match(html,/work-calendar-compact/);
 });
+
+test('Inicio docente es una vista de trabajo compacta con accesos claros',()=>{const html=teacherDashboard(snap);assert.match(html,/ua-campus-home/);assert.match(html,/ua-next-lesson/);assert.match(html,/ua-review-list/);assert.match(html,/Entrar en clase/);assert.doesNotMatch(html,/work-lesson-feature/);});
+test('Cabecera de clase permite programar sesiones y no utiliza un banner de promoción',()=>{const html=classPage(snap,'g1',new URLSearchParams());assert.match(html,/ua-course-heading/);assert.match(html,/Nueva sesión/);assert.doesNotMatch(html,/class="course-hero/);});
