@@ -47,3 +47,24 @@ test('Los títulos introducidos por usuarios se escapan en la interfaz',()=>{
  assert.doesNotMatch(x,/<img src=x/);
  assert.match(x,/&lt;img src=x/);
 });
+
+
+test('La planificación y los recursos del alumno tienen estructura compacta y acciones reales',()=>{
+ const x=studentHome(snapshot);
+ assert.match(x,/study-util-calendar/);
+ assert.match(x,/study-util-library/);
+ assert.match(x,/1 sesión programada/);
+ assert.match(x,/study-util-session-link/);
+ assert.match(x,/17:00/);
+ assert.match(x,/data-action="material" data-id="m1"/);
+ assert.match(x,/APUNTE/);
+ assert.doesNotMatch(x,/study-agenda-rail|study-resources-rail|Las próximas<br>clases/);
+});
+
+test('Las clases del alumno son enlaces a su agenda y los materiales conservan el escape de HTML',()=>{
+ const broken={...snapshot,materials:[{...snapshot.materials[0],title:'<svg onload=alert(1)>'}]};
+ const x=studentHome(broken);
+ assert.match(x,/href="#\/agenda"/);
+ assert.doesNotMatch(x,/<svg onload=/);
+ assert.match(x,/&lt;svg onload=/);
+});
