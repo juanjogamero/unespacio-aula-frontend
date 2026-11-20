@@ -117,3 +117,14 @@
 @media(max-width:760px){.work-home-layout{grid-template-columns:1fr}.work-classes-grid{grid-template-columns:1fr 1fr}.work-topic-layout{grid-template-columns:1fr}.work-topic-navigation nav{padding:5px 10px 11px}.study-side-column{grid-template-columns:1fr}}
 @media(max-width:640px){.work-classes-grid{grid-template-columns:1fr}.work-lesson-feature{min-height:200px;padding:20px}.course-hero,.course-hero.blue,.course-hero.violet,.course-hero.teal,.course-hero.rose{min-height:110px;padding:18px 20px 15px}.work-topic-banner{padding:18px 16px 0}.work-topic-body{padding:4px 15px 20px}.study-main-grid{gap:20px}.study-side-column{display:flex;flex-direction:column}.study-side-column .study-util-block{width:100%}.study-feature{border-radius:9px}}
 @media(prefers-reduced-motion:reduce){.work-class,.work-topic-link,.study-task-item{transition:none}}
+
+/* Interacción táctil: los temas se consultan en vertical y las pestañas no necesitan scroll horizontal. */
+@media(max-width:640px){
+ .course-tabs{display:flex;flex-wrap:wrap;overflow:visible;gap:0 12px;padding:5px 0;border-bottom:1px solid #d3dfeb}
+ .course-tabs a{white-space:normal;flex:none;padding:11px 3px;min-height:43px;font-size:12px}
+ .work-topic-navigation nav{display:grid;grid-template-columns:minmax(0,1fr);overflow:visible;padding:5px 9px 11px;gap:0}
+ .work-topic-link{width:100%;min-width:0;max-width:none;min-height:60px}
+ .work-topic-link+.work-topic-link{border-top:1px solid #e8eef4}
+ .work-topic-workspace{margin-top:0}
+ .work-topic-layout{gap:12px}
+}

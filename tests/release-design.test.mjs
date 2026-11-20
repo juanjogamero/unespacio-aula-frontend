@@ -15,5 +15,5 @@ test('La publicación versiona los recursos en Pages evitando estilos desactuali
  assert.match(pages,/ua-release/);
  assert.match(pages,/\\?v=/);
  const app=read('../src/ui/app.ts');
- assert.match(app,/Versión 0\.7\.0/);
+ assert.match(app,/Versión 0\.7\.1/);
 });
