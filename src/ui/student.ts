@@ -57,21 +57,29 @@ function subjectItem(s:Snapshot,subject:string,index:number){
  return `<a href="#${materiaUrl(subject)}" class="study-subject-item ${subjectColor(subject,index)}"><span class="study-subject-serial">0${index+1} / ASIGNATURA</span><div class="study-subject-main"><span class="study-subject-symbol">${icon(subjectColor(subject,index)==='math'?'layers':'book',26)}</span><strong>${h(subject)}</strong></div><span class="study-subject-description">${materialCount} ${materialCount===1?'material':'materiales'} · ${taskCount} ${taskCount===1?'actividad':'actividades'} <span class="study-subject-arrow">${icon('right',18)}</span></span></a>`;
 }
 export function studentHome(s:Snapshot):string{
- const firstName=s.session.name.split(' ')[0];const student=studentSubject(s);
- const tasks=[...s.assignments].sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
- const pending=tasks.filter(a=>stateOf(s,a)==='Pendiente');const lessons=upcoming(s);
- const focus=pending[0],soon=lessons[0];
- const focusTitle=focus?focus.title:soon?`Tu próxima clase de ${soon.subject}`:'Tu espacio está al día';
- const focusSub=focus?`${focus.subject||'Tu materia'} · Entrega ${eDate(focus.dueDate)}`:soon?`${eDate(soon.start)} · ${eTime(soon.start)}`:'Explora tus materias y los próximos contenidos';
- const focusRoute=focus?`/actividades/${encodeURIComponent(focus.id)}`:'/agenda';
- return `<div class="study-home"><header class="study-home-header"><div><span class="study-overline">MI APRENDIZAJE <span class="study-overline-rule"></span> ${h(student?.level||'')}</span><h1>Hola, ${h(firstName)}<span class="study-wave">.</span></h1><p>Un lugar para estudiar a tu ritmo y saber qué viene después.</p></div><div class="study-home-date">${icon('calendar',17)}<span>${h(new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}))}</span></div></header>
- <section class="study-feature" aria-labelledby="study-feature-title"><div class="study-feature-content"><span class="study-feature-kicker"><span class="study-live-dot" aria-hidden="true"></span> TU SIGUIENTE PASO</span><h2 id="study-feature-title">${h(focusTitle)}</h2><p>${h(focusSub)}</p><a class="study-feature-cta" href="#${focusRoute}">${focus?'Continuar actividad':soon?'Ver mi agenda':'Explorar mis clases'} ${icon('arrow',18)}</a></div><div class="study-feature-visual">${studyArtwork()}<div class="study-art-caption"><span>APRENDER ES AVANZAR</span><span>UNESPACIO AULA</span></div></div></section>
- <div class="study-main-grid"><div class="study-main-column"><section class="study-section" aria-labelledby="study-tasks-title"><div class="study-section-heading"><div><span class="study-overline">LO IMPORTANTE AHORA</span><h2 id="study-tasks-title">Tus actividades <span class="study-heading-count">${pending.length} pendientes</span></h2></div>${anchor('Todas mis tareas','/tareas')}</div><div class="study-task-list">${tasks.length?tasks.slice(0,4).map((a,i)=>taskItem(s,a,i)).join(''):`<div class="study-zero">${icon('check',22)}<div><strong>Todo al día</strong><p>No tienes actividades asignadas por ahora.</p></div></div>`}</div></section>
- <section class="study-section study-subjects-section" aria-labelledby="study-subject-title"><div class="study-section-heading"><div><span class="study-overline">TUS ESPACIOS</span><h2 id="study-subject-title">Mis materias</h2></div>${anchor('Ver materias','/materias')}</div><div class="study-subject-grid">${subjects(s).map((sub,i)=>subjectItem(s,sub,i)).join('')||'<div class="study-zero">Tus materias aparecerán aquí.</div>'}</div></section></div>
- <aside class="study-side-column" aria-label="Agenda y materiales de clase">
- ${calendarWidget(s,true)}
- <section class="study-util-block study-util-library" aria-labelledby="study-materials-title"><div class="study-util-head"><div><span class="study-overline">TUS RECURSOS</span><h2 id="study-materials-title">Material de clase</h2></div><span class="study-util-counter" aria-label="${s.materials.length} materiales disponibles">${s.materials.length}</span></div><p class="study-util-subtitle">Documentos, enlaces y apuntes de tus profesores.</p><div class="study-util-resources">${s.materials.length?s.materials.slice(0,3).map(materialRailItem).join(''):'<p class="study-util-empty">Tus materiales estarán disponibles aquí.</p>'}</div>${anchor('Ver todas mis materias','/materias','study-util-footer')}</section>
- </aside></div></div>`;
+ const firstName=s.session.name.split(' ')[0],student=studentSubject(s);
+ const tasks=[...s.assignments].sort((a,b)=>a.dueDate.localeCompare(b.dueDate)),pending=tasks.filter(a=>stateOf(s,a)==='Pendiente');
+ const focus=pending[0],focusTitle=focus?.title||'Todo al día';
+ const focusDetail=focus?`${focus.subject||'Actividad'} · Entrega ${eDate(focus.dueDate)}`:'No tienes actividades pendientes de entrega.';
+ return `<div class="study-home ua-student-home">
+  <header class="ua-page-heading"><div><span class="ua-page-context">Mi aprendizaje · ${h(student?.level||'')}</span><h1>Hola, ${h(firstName)}</h1><p>Aquí tienes tus clases, tareas y materiales en un mismo lugar.</p></div><a class="ua-link-control" href="#/agenda">${icon('calendar',18)} Mi agenda</a></header>
+  <section class="study-feature ua-student-next" aria-labelledby="study-feature-title"><div class="ua-student-next-icon" aria-hidden="true">${icon('tasks',22)}</div>
+   <div class="study-feature-content"><span class="ua-next-eyebrow">${focus?'Tienes una tarea pendiente':'Tu aprendizaje'}</span><h2 id="study-feature-title">${h(focusTitle)}</h2><p>${h(focusDetail)}</p></div>
+   <a class="study-feature-cta ua-primary-action" href="#${focus?`/actividades/${encodeURIComponent(focus.id)}`:'/materias'}">${focus?'Abrir actividad':'Ver mis materias'} ${icon('arrow',17)}</a>
+  </section>
+  <div class="study-main-grid ua-learning-grid"><div class="study-main-column">
+   <section class="study-section ua-content-section" aria-labelledby="study-tasks-title"><div class="study-section-heading ua-section-heading"><div><h2 id="study-tasks-title">Tus actividades <span class="ua-count">${pending.length} pendientes</span></h2><p>Revisa lo que tienes que entregar.</p></div>${anchor('Ver todas','/tareas')}</div>
+    <div class="study-task-list">${tasks.length?tasks.slice(0,4).map((a,i)=>taskItem(s,a,i)).join(''):`<div class="study-zero">${icon('check',22)}<div><strong>Todo al día</strong><p>No tienes actividades asignadas por ahora.</p></div></div>`}</div>
+   </section>
+   <section class="study-section ua-content-section" aria-labelledby="study-subject-title"><div class="study-section-heading ua-section-heading"><div><h2 id="study-subject-title">Mis materias</h2><p>Accede a los contenidos de cada asignatura.</p></div>${anchor('Ver materias','/materias')}</div>
+    <div class="study-subject-grid ua-student-subjects">${subjects(s).map((sub,i)=>subjectItem(s,sub,i)).join('')||'<p class="ua-empty-line">Todavía no tienes materias asignadas.</p>'}</div>
+   </section>
+  </div><aside class="study-side-column ua-learning-aside" aria-label="Agenda y materiales">
+   ${calendarWidget(s,true)}
+   <section class="study-util-block study-util-library" aria-labelledby="study-materials-title"><div class="study-util-head"><div><h2 id="study-materials-title">Materiales recientes</h2></div><span class="study-util-counter">${s.materials.length}</span></div>
+    <p class="study-util-subtitle">Apuntes, documentos y enlaces para estudiar.</p><div class="study-util-resources">${s.materials.length?s.materials.slice(0,4).map(materialRailItem).join(''):'<p class="study-util-empty">Tus materiales aparecerán aquí.</p>'}</div>${anchor('Ver todas mis materias','/materias','study-util-footer')}
+   </section>
+  </aside></div></div>`;
 }
 export function studentTasksPage(s:Snapshot):string{
  const sorted=[...s.assignments].sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
