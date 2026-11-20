@@ -77,6 +77,10 @@ try{
  await picture('alumno-390');
  await viewport(1440,980);await sleep(400);await picture('alumno-1440');
  // Prueba de trabajo real: crear ocho sesiones semanales y confirmar la persistencia local.
+ await js("sessionStorage.removeItem('unespacio.dev.session.v1');location.hash='';location.reload();true");
+ await wait("Boolean(document.querySelector('form[data-form=\"development-login\"]'))");
+ await js("document.querySelector('#workspace-account').value='academy-teacher';document.querySelector('form[data-form=\"development-login\"]').requestSubmit();true");
+ await wait("Boolean(document.querySelector('.work-home'))");
  await js("location.hash='#/clases/g1?tab=sesiones';true");
  await wait("Boolean(document.querySelector('button[data-action=\"new-lesson\"][data-id=\"g1\"]'))");
  await js("document.querySelector('button[data-action=\"new-lesson\"][data-id=\"g1\"]').click();true");
