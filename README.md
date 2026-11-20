@@ -2,9 +2,9 @@
 
 Aplicación web educativa para **profesores particulares** y **pequeñas academias**. Código frontend modular en TypeScript, sin frameworks ni dependencias de ejecución. Esta es la implementación en curso del producto, no un HTML monolítico.
 
-## Estado del proyecto (0.2.0)
+## Estado del proyecto (0.3.0)
 
-**Implementado:** navegación y pantallas por perfil; pantalla de inicio de sesión; dashboard docente; clases y temas; materiales (texto, enlace, archivo); actividades; entregas y correcciones; agenda; ficha individual de alumno; creación básica de alumnos y grupos; formularios y diseño adaptable.
+**Implementado:** nueva identidad visual con tipografía IBM Plex, navegación a pantalla completa, dashboard docente revisado, preferencias de densidad y movimiento; navegación y pantallas por perfil; pantalla de inicio de sesión; dashboard docente; clases y temas; materiales (texto, enlace, archivo); actividades; entregas y correcciones; agenda; ficha individual de alumno; creación básica de alumnos y grupos; formularios y diseño adaptable.
 
 **Pendiente para operar con cuentas reales:** autenticación en el VPS, autorización servidor por organización y rol, base de datos, almacenamiento privado, invitaciones, correo, recuperación de contraseña, políticas de privacidad y pruebas de seguridad integrales.
 
@@ -12,7 +12,7 @@ Aplicación web educativa para **profesores particulares** y **pequeñas academi
 
 ## Sitios
 
-- [Entorno de desarrollo](https://juanjogamero.github.io/unespacio-aula-frontend/): abre la pantalla de acceso y permite entrar con cuatro **cuentas de desarrollo**, claramente identificadas. No solicita contraseñas de prueba.
+- [Entorno de desarrollo](https://juanjogamero.github.io/unespacio-aula-frontend/): abre la pantalla de acceso y permite entrar con cuatro **cuentas de desarrollo**, identificadas como acceso técnico temporal. No solicita contraseñas de prueba.
 - [Repositorio](https://github.com/juanjogamero/unespacio-aula-frontend): fuente y GitHub Actions.
 
 La experiencia es única, con roles diferentes:
@@ -23,6 +23,12 @@ La experiencia es única, con roles diferentes:
 - **Alumno:** Mi aprendizaje, tareas, respuestas y calificaciones.
 
 Los datos ficticios del entorno de desarrollo se guardan **solo en el navegador** (metadatos en `localStorage`, sesión de desarrollo en `sessionStorage`, archivos en IndexedDB), separados de cualquier cuenta real. Esto permite probar la continuidad entre sesiones y los perfiles en el mismo navegador, pero **no habilita seguridad, colaboración entre dispositivos, copias de seguridad ni almacenamiento privado**.
+
+## Sistema de diseño de esta versión
+
+La UI se compone de `src/styles.css` (componentes y estructura existentes) y `src/design.css` (sistema visual v0.3). El segundo archivo introduce navegación de trabajo a pantalla completa, tipografía más sobria, superficies diferenciadas por contenido y tarjetas con acentos sólidos en lugar de degradados repetidos. El login presenta un formulario que usa la API en producción y un selector de cuentas ficticias solo en desarrollo; no se mezclan ambos modos.
+
+La fuente IBM Plex se solicita a Google Fonts en el entorno de desarrollo. **Antes de utilizar datos personales reales**, habrá que revisar esta dependencia y, preferiblemente, alojar los recursos tipográficos en el propio dominio, además de configurar CSP estricta en el VPS.
 
 ## Desarrollo local
 
@@ -53,6 +59,7 @@ src/
     development.ts    Datos ficticios persistentes solo en build de desarrollo
     local-files.ts    Archivos ficticios en IndexedDB, solo desarrollo
     security.ts       Escapado, validación de enlaces y archivos
+    preferences.ts    Preferencias visuales no sensibles (locales)
   ui/
     app.ts            Sesión, navegación, acceso y formularios
     views.ts          Pantallas por rol

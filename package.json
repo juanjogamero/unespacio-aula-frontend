@@ -1,6 +1,6 @@
 {
   "name": "unespacio-aula-frontend",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Frontend real de Unespacio Aula, preparado para la API privada; entorno de desarrollo local aislado",

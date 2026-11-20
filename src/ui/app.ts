@@ -5,6 +5,7 @@ import {h,eDate,eTime,studentName} from './helpers.js';
 import {icon} from './icons.js';
 import {pageView} from './views.js';
 import {safeExternalUrl} from '../core/security.js';
+import {applyPreferences,togglePreference} from '../core/preferences.js';
 
 type ModalKind='new-student'|'new-group'|'new-topic'|'edit-topic'|'new-material'|'new-student-material'|'new-assignment'|'new-student-assignment'|'new-lesson'|'prepare'|'grade'|'material';
 type Modal={kind:ModalKind;id:string};
@@ -19,6 +20,7 @@ let snapshot:Snapshot|null=null,modal:Modal|null=null,menu:'profile'|'notices'|n
 let lastFocus:HTMLElement|null=null;
 let currentRoute='/inicio';
 let authError='';
+applyPreferences();
 function parseRoute(){let hash='/inicio';try{hash=decodeURI(location.hash.slice(1)||'/inicio');}catch{hash='/inicio';}const [path,query]=hash.split('?');return {path:path||'/inicio',qs:new URLSearchParams(query||'')};}
 function defaultRoute(s:Snapshot){return s.session.role==='private-teacher'?'/alumnos':s.session.role==='academy-admin'?'/inicio':s.session.role==='student'?'/inicio':'/inicio';}
 function navItems(s:Snapshot){const role=s.session.role;
@@ -27,10 +29,8 @@ function navItems(s:Snapshot){const role=s.session.role;
  if(role==='student')return [{label:'Mi aprendizaje',url:'/inicio',ico:'home'},{label:'Mis tareas',url:'/tareas',ico:'tasks'},{label:'Agenda',url:'/agenda',ico:'calendar'}];
  return [{label:'Inicio',url:'/inicio',ico:'home'},{label:'Mis clases',url:'/clases',ico:'school'},{label:'Agenda',url:'/agenda',ico:'calendar'},{label:'Entregas',url:'/entregas',ico:'tasks'},{label:'Biblioteca',url:'/biblioteca',ico:'folder'}];
 }
-function nav(s:Snapshot){const items=navItems(s);return `<aside class="sidebar"><a href="#${defaultRoute(s)}" class="brand" aria-label="Unespacio Aula, ir al inicio"><span class="brand-symbol"><i></i><i></i><i></i></span><span class="brand-name">unespacio <small>AULA</small></span></a><div class="sidebar-scroll"><span class="sidebar-section-label">TU ESPACIO</span><nav aria-label="Navegación principal">${items.map((item,i)=>`<a href="#${item.url}" class="nav-item ${currentRoute===item.url||currentRoute.startsWith(`${item.url}/`)?'is-active':''}">${icon(item.ico,19)} <span>${item.label}</span>${item.url==='/entregas'&&s.session.role!=='student'&&s.submissions.some(x=>x.status==='submitted')?`<span class="nav-counter">${s.submissions.filter(x=>x.status==='submitted').length}</span>`:''}</a>${i===3&&items.length>4?'<div class="sidebar-divider"></div><span class="sidebar-section-label">RECURSOS</span>':''}`).join('')}</nav></div><div class="sidebar-bottom"><div class="workspace-badge"><span class="avatar small">${h(s.session.initials)}</span><span><strong>${h(s.session.workspaceName)}</strong><small>${h(s.session.role==='academy-teacher'?'Profesor de academia':s.session.role==='academy-admin'?'Administración':s.session.role==='private-teacher'?'Profesor particular':'Alumno')}</small></span></div>${isDevelopment?`<button class="preview-switch" data-action="switch-role">${icon('rotate',16)} Cambiar cuenta</button>`:''}</div></aside>`;}
+function nav(s:Snapshot){const items=navItems(s);return `<aside class="sidebar"><a href="#${defaultRoute(s)}" class="brand" aria-label="Unespacio Aula, ir al inicio"><span class="brand-symbol"><i></i><i></i><i></i></span><span class="brand-name">unespacio <small>AULA</small></span></a><div class="sidebar-scroll"><span class="sidebar-section-label">TU ESPACIO</span><nav aria-label="Navegación principal">${items.map((item,i)=>`<a href="#${item.url}" class="nav-item ${currentRoute===item.url||currentRoute.startsWith(`${item.url}/`)?'is-active':''}">${icon(item.ico,19)} <span>${item.label}</span>${item.url==='/entregas'&&s.session.role!=='student'&&s.submissions.some(x=>x.status==='submitted')?`<span class="nav-counter">${s.submissions.filter(x=>x.status==='submitted').length}</span>`:''}</a>${i===3&&items.length>4?'<div class="sidebar-divider"></div><span class="sidebar-section-label">RECURSOS</span>':''}`).join('')}</nav></div><div class="sidebar-bottom"><div class="workspace-badge"><span class="avatar small">${h(s.session.initials)}</span><span><strong>${h(s.session.workspaceName)}</strong><small>${h(s.session.role==='academy-teacher'?'Profesor de academia':s.session.role==='academy-admin'?'Administración':s.session.role==='private-teacher'?'Profesor particular':'Alumno')}</small></span></div></div></aside>`;}
 function header(s:Snapshot){const date=new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});return `<header class="topbar"><button class="mobile-menu btn btn-icon" type="button" data-action="mobile-nav" aria-label="Abrir menú">${icon('menu')}</button><div class="search-holder"><label class="sr-only" for="global-search">Buscar en Unespacio Aula</label>${icon('search',18)}<input id="global-search" autocomplete="off" type="search" placeholder="Buscar alumnos, grupos o actividades…" value="${h(searchValue)}"/><div id="search-results" class="search-results" hidden></div></div><div class="top-controls"><span class="top-date">${h(date)}</span><button class="top-icon" type="button" data-action="toggle-notices" aria-label="Ver avisos" aria-expanded="${menu==='notices'}" title="Avisos">${icon('bell')}</button><a href="#/agenda" class="top-icon" aria-label="Ir a agenda" title="Agenda">${icon('calendar')}</a><button class="profile-trigger" type="button" data-action="toggle-profile" aria-expanded="${menu==='profile'}" aria-label="Opciones de cuenta"><span class="avatar small">${h(s.session.initials)}</span>${icon('down',14)}</button></div>${menu==='profile'?`<div class="top-dropdown profile-dropdown" role="menu"><div class="dropdown-user"><span class="avatar">${h(s.session.initials)}</span><div><strong>${h(s.session.name)}</strong><small>${h(s.session.workspaceName)}</small></div></div><a href="#/perfil" role="menuitem">${icon('user',17)} Mi perfil</a><a href="#/configuracion" role="menuitem">${icon('settings',17)} Configuración</a><button class="dropdown-signout" type="button" data-action="sign-out">${icon('rotate',17)} Cerrar sesión</button></div>`:''}${menu==='notices'?`<div class="top-dropdown notice-dropdown" role="dialog" aria-label="Avisos recientes"><div class="surface-header"><h3>Avisos recientes</h3><button class="btn btn-icon" data-action="close-menu" aria-label="Cerrar avisos">${icon('x',17)}</button></div>${s.notices.length?s.notices.slice(0,5).map(n=>`<div class="notice-compact"><strong>${h(n.title)}</strong><p>${h(n.body)}</p><small>${eDate(n.date)}</small></div>`).join(''):'<p class="muted">Sin avisos recientes.</p>'}</div>`:''}</header>`;}
-function developmentNote(){return isDevelopment?`<div class="dev-note" aria-label="Entorno de desarrollo: datos ficticios guardados en el navegador">${icon('shield',13)} DESARROLLO · Datos locales</div>`:'';}
-function roleModal(){return `<div class="modal-backdrop" data-action="close-modal"></div><div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="dialog-head"><div><span class="eyebrow">ENTORNO DE DESARROLLO</span><h2 id="modal-title">Cambiar de cuenta</h2></div><button class="btn btn-icon" type="button" data-action="close-modal" aria-label="Cerrar">${icon('x')}</button></div><p>Estas cuentas permiten probar los recorridos. Los permisos reales se validarán en el VPS.</p><div class="role-list">${(['academy-teacher','private-teacher','academy-admin','student'] as Role[]).map(role=>`<button class="role-option" data-action="set-role" data-id="${role}"><span class="accent-icon blue">${icon(role==='student'?'school':'user')}</span><span><strong>${h(role==='academy-teacher'?'Profesor de academia':role==='private-teacher'?'Profesor particular':role==='academy-admin'?'Administrador':'Alumno')}</strong><small>${h(role==='academy-teacher'?'Nora Reyes':role==='private-teacher'?'Daniel Ruiz':role==='academy-admin'?'Ana Cortés':'Lucía Martín')}</small></span>${icon('right')}</button>`).join('')}</div></div>`;}
 function formField(name:string,title:string,type='text',value='',extra=''){return `<label class="field"><span>${h(title)}</span><input name="${h(name)}" type="${type}" value="${h(value)}" ${extra}/></label>`;}
 function textarea(name:string,title:string,value='',required=false){return `<label class="field"><span>${h(title)}</span><textarea name="${h(name)}" rows="4" ${required?'required':''}>${h(value)}</textarea></label>`;}
 function renderModal(s:Snapshot,m:Modal){const group=s.groups.find(g=>g.id===m.id),student=s.students.find(st=>st.id===m.id),topic=s.topics.find(t=>t.id===m.id),lesson=s.lessons.find(l=>l.id===m.id),submission=s.submissions.find(sub=>sub.id===m.id);const assigned=submission&&s.assignments.find(a=>a.id===submission.assignmentId);let title='';let body='';let form='';let submit='Guardar';
@@ -48,7 +48,7 @@ function renderModal(s:Snapshot,m:Modal){const group=s.groups.find(g=>g.id===m.i
  }
  const content=form?`<form data-form="${form}" data-id="${h(m.id)}">${body}<div class="form-actions"><button class="btn btn-outline" type="button" data-action="close-modal">Cancelar</button><button class="btn btn-solid" type="submit">${submit}</button></div></form>`:body;
  return `<div class="modal-backdrop" data-action="close-modal"></div><div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="dialog-head"><div><span class="eyebrow">UNESPACIO AULA</span><h2 id="modal-title">${title}</h2></div><button class="btn btn-icon" type="button" data-action="close-modal" aria-label="Cerrar ventana">${icon('x')}</button></div>${content}</div>`;}
-function render(){if(!snapshot)return;const parsed=parseRoute();currentRoute=parsed.path;const page=pageView(snapshot,parsed.path,parsed.qs);appRoot.innerHTML=`${developmentNote()}<div class="shell" id="shell">${nav(snapshot)}<div class="main-column">${header(snapshot)}<main class="content" id="main-content" tabindex="-1">${page}</main></div></div><div id="modal-root" class="modal-layer ${modal?'open':''}">${modal?modal.kind==='new-lesson'&&modal.id==='role'?roleModal():renderModal(snapshot,modal):''}</div><div class="toast ${toastText?'visible':''}" role="status" aria-live="polite">${h(toastText)}</div>`;appRoot.classList.toggle('with-modal',!!modal);if(searchValue)updateSearch();}
+function render(){if(!snapshot)return;const parsed=parseRoute();currentRoute=parsed.path;const page=pageView(snapshot,parsed.path,parsed.qs);appRoot.innerHTML=`<div class="shell" id="shell">${nav(snapshot)}<div class="main-column">${header(snapshot)}<main class="content" id="main-content" tabindex="-1">${page}</main></div></div><div id="modal-root" class="modal-layer ${modal?'open':''}">${modal?renderModal(snapshot,modal):''}</div><div class="toast ${toastText?'visible':''}" role="status" aria-live="polite">${h(toastText)}</div>`;appRoot.classList.toggle('with-modal',!!modal);if(searchValue)updateSearch();}
 function say(message:string){toastText=message;render();setTimeout(()=>{toastText='';const toast=document.querySelector('.toast');if(toast)toast.textContent='';},4000);}
 async function reload(message?:string){snapshot=await gateway.getSnapshot();modal=null;menu=null;render();if(message)say(message);}
 function openModal(kind:ModalKind,id:string){lastFocus=document.activeElement as HTMLElement;modal={kind,id};menu=null;render();document.querySelector<HTMLElement>('#modal-root input, #modal-root textarea, #modal-root button')?.focus();}
@@ -64,17 +64,12 @@ appRoot.addEventListener('click',async e=>{const target=validActionTarget(e.targ
  if(action==='close-modal'){closeModal();return;}if(action==='close-menu'){menu=null;render();return;}
  if(action==='toggle-profile'||action==='toggle-notices'){menu=menu===(action==='toggle-profile'?'profile':'notices')?null:action==='toggle-profile'?'profile':'notices';render();return;}
  if(action==='mobile-nav'){document.getElementById('shell')?.classList.toggle('mobile-open');return;}
- if(action==='switch-role'&&isDevelopment){lastFocus=target;modal={kind:'new-lesson',id:'role'};render();return;}
- if((action==='set-role'||action==='dev-sign-in')&&isDevelopment){
-  if(!(['academy-teacher','private-teacher','academy-admin','student'] as string[]).includes(id))return;
-  (gateway as DevelopmentGateway).setRole(id as Role);searchValue='';snapshot=await gateway.getSnapshot();modal=null;menu=null;
-  location.hash=`#${defaultRoute(snapshot)}`;render();return;
- }
  if(action==='sign-out'){
   if(isDevelopment){(gateway as DevelopmentGateway).signOut();snapshot=null;menu=null;modal=null;location.hash='';authScreen();return;}
   try{await (gateway as HttpGateway).signOut();snapshot=null;menu=null;modal=null;location.hash='';authScreen();}
   catch(err){say(err instanceof Error?err.message:'No se ha podido cerrar la sesión.');}return;
  }
+ if(action==='toggle-density'||action==='toggle-motion'){try{togglePreference(action==='toggle-density'?'compact':'reduceMotion');applyPreferences();render();say('Preferencia actualizada en este dispositivo.');}catch{say('No se ha podido guardar la preferencia.');}return;}
  if(action==='material'){openModal('material',id);return;}if(action==='open-material'){await openMaterial(id);return;}
  if(action==='open-submission'){
   const sub=snapshot?.submissions.find(x=>x.id===id);
@@ -90,6 +85,13 @@ appRoot.addEventListener('click',async e=>{const target=validActionTarget(e.targ
 appRoot.addEventListener('input',e=>{const el=e.target;if(el instanceof HTMLInputElement&&el.id==='global-search'){searchValue=el.value;updateSearch();}});
 appRoot.addEventListener('change',e=>{const el=e.target;if(el instanceof HTMLSelectElement&&el.id==='material-kind'){const dynamic=document.querySelector('.material-dynamic');if(!dynamic)return;dynamic.innerHTML=el.value==='text'?`<label class="field"><span>Contenido de la explicación</span><textarea rows="4" name="content"></textarea></label>`:el.value==='link'?`<label class="field"><span>Enlace</span><input name="url" type="url" placeholder="https://..." required></label>`:`<label class="field"><span>Archivo</span><input name="file" type="file" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp" required><small>PDF, DOCX, TXT o imágenes · Máximo 10 MB.</small></label>`;}});
 appRoot.addEventListener('submit',async e=>{const form=e.target;if(!(form instanceof HTMLFormElement))return;e.preventDefault();if(busy)return;
+ if(form.dataset.form==='development-login'&&isDevelopment){
+  const role=String(new FormData(form).get('role')||'') as Role;
+  if(!(['academy-teacher','private-teacher','academy-admin','student'] as string[]).includes(role))return;
+  (gateway as DevelopmentGateway).setRole(role);searchValue='';snapshot=await gateway.getSnapshot();modal=null;menu=null;
+  location.hash=`#${defaultRoute(snapshot)}`;render();return;
+ }
+
  if(form.dataset.form==='sign-in'){
   if(isDevelopment){authError='El acceso con contraseña estará disponible al conectar el servidor. Para probar el entorno utiliza una de las cuentas de desarrollo.';authScreen();return;}
   const fd=new FormData(form);const email=String(fd.get('email')||'').trim();const password=String(fd.get('password')||'');
@@ -106,37 +108,45 @@ appRoot.addEventListener('submit',async e=>{const form=e.target;if(!(form instan
  else if(kind==='submit'){const file=data.get('file');await gateway.submit({assignmentId:id,text:String(data.get('text')||''),...(file instanceof File&&file.size?{file}:{})});}
  else if(kind==='grade')await gateway.grade({submissionId:id,score:Number(data.get('score')),feedback:String(data.get('feedback')||'')});
  else if(kind==='lesson'){const l=snapshot?.lessons.find(x=>x.id===id),g=snapshot?.groups.find(x=>x.id===id),st=snapshot?.students.find(x=>x.id===id);const payload={subject:String(data.get('subject')||''),start:String(data.get('start')||''),end:String(data.get('end')||''),summary:String(data.get('summary')||''),preparation:String(data.get('preparation')||''),nextStep:String(data.get('nextStep')||''),...(l?.groupId||g?.id?{groupId:l?.groupId||g?.id}:{}),...(l?.studentId||st?.id?{studentId:l?.studentId||st?.id}:{}),recurring:!!l?.recurring};if(l)await gateway.updateLesson(l.id,payload);else await gateway.saveLesson(payload);}
- await reload(isDevelopment?'Cambios guardados en este navegador.':'Cambios guardados correctamente.');
+ await reload(isDevelopment?'Guardado en este dispositivo.':'Cambios guardados correctamente.');
  }catch(error){say(error instanceof Error?error.message:'No se ha podido guardar.');}finally{busy=false;}
 });
 window.addEventListener('hashchange',()=>{modal=null;menu=null;searchValue='';render();window.scrollTo({top:0,behavior:'instant'});});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modal){e.preventDefault();closeModal();}else if(menu){menu=null;render();}}if(e.key==='Tab'&&modal){const focusable=[...document.querySelectorAll<HTMLElement>('#modal-root button, #modal-root input, #modal-root textarea, #modal-root select')].filter(x=>!x.hasAttribute('disabled'));if(!focusable.length)return;const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}});
 function authScreen(message=''){
  const error=authError||message;
- const choices:[Role,string,string,string][]=[
-  ['academy-teacher','Profesora de academia','Nora Reyes','Mis clases, tareas y sesiones'],
-  ['private-teacher','Profesor particular','Daniel Ruiz','Mis alumnos y seguimiento'],
-  ['academy-admin','Administradora','Ana Cortés','Grupos y organización del centro'],
-  ['student','Alumna','Lucía Martín','Materiales y entregas']
+ const choices:[Role,string,string][]=[
+  ['academy-teacher','Nora Reyes','Profesora de academia'],
+  ['private-teacher','Daniel Ruiz','Profesor particular'],
+  ['academy-admin','Ana Cortés','Administradora del centro'],
+  ['student','Lucía Martín','Alumna']
  ];
  appRoot.innerHTML=`<div class="login-shell">
   <section class="login-aside" aria-label="Bienvenida a Unespacio Aula">
    <div class="login-brand"><span class="brand-symbol"><i></i><i></i><i></i></span><span>unespacio <small>AULA</small></span></div>
-   <div class="login-art"><span class="art-orbit"></span><div class="art-card art-card-main"><div class="art-label">PRÓXIMA CLASE</div><strong>Todo listo para enseñar.</strong><div class="art-bar"><span></span></div><div class="art-checks"><b>✓</b><span>Material preparado</span></div><div class="art-checks"><b>✓</b><span>Actividades organizadas</span></div></div><div class="art-card art-card-small">${icon('calendar',26)}<strong>Tu agenda,<br>al día.</strong></div><span class="art-pink"></span><span class="art-teal"></span></div>
-   <div class="login-aside-copy"><span class="login-kicker">TU ESPACIO DE ENSEÑANZA</span><h1>Más tiempo para enseñar.<br><em>Menos para organizar.</em></h1><p>Clases, alumnos, materiales y tareas. Todo en un espacio pensado para tu día a día.</p></div>
-   <div class="login-aside-foot">UNESPACIO AULA <span>·</span> DOCENCIA SIN COMPLICACIONES</div>
+   <div class="login-aside-copy"><span class="login-kicker">EL ESPACIO DE TRABAJO PARA ENSEÑAR</span><h1>Cada clase,<br>en su lugar<span>.</span></h1><p>Alumnos, grupos, sesiones, materiales y tareas. Todo conectado para que puedas centrarte en enseñar.</p></div>
+   <div class="login-feature-list" aria-label="Qué puedes hacer en Unespacio Aula">
+    <div><span>01</span><strong>Prepara la siguiente sesión</strong><small>Sin perder de vista la anterior.</small></div>
+    <div><span>02</span><strong>Comparte materiales y tareas</strong><small>Desde el alumno o desde su grupo.</small></div>
+    <div><span>03</span><strong>Continúa donde lo dejaste</strong><small>Una agenda, un espacio, menos pasos.</small></div>
+   </div>
+   <div class="login-aside-foot">UNESPACIO AULA <span aria-hidden="true">·</span> UN ESPACIO PARA ENSEÑAR</div>
   </section>
-  <main class="login-main"><div class="login-panel"><div class="login-top-label"><span class="login-badge">${isDevelopment?'ENTORNO DE DESARROLLO':'ACCESO A LA PLATAFORMA'}</span><span class="login-flourish" aria-hidden="true">✳</span></div>
-    <h2>Bienvenido a tu aula<span>.</span></h2><p class="login-intro">Accede para continuar donde lo dejaste.</p>
-    <form class="login-form" data-form="sign-in" autocomplete="on">
-      <label>Correo electrónico<input type="email" name="email" placeholder="nombre@tuacademia.es" autocomplete="username" required maxlength="254"></label>
-      <label>Contraseña<input type="password" name="password" placeholder="Tu contraseña" autocomplete="current-password" required minlength="8"></label>
-      <button class="login-submit" type="submit">Entrar en Unespacio Aula ${icon('right',18)}</button>
-    </form>
+  <main class="login-main"><div class="login-panel"><div class="login-top-label"><span class="login-badge">ACCESO A TU ESPACIO</span><span class="login-flourish" aria-hidden="true">✳</span></div>
+    <h2>Bienvenido de nuevo.</h2><p class="login-intro">Retoma tus clases justo donde las dejaste.</p>
+    ${isDevelopment?`<form class="login-form" data-form="development-login">
+       <label for="workspace-account">Cuenta de trabajo
+        <select id="workspace-account" name="role" required>${choices.map(([id,name,role])=>`<option value="${h(id)}">${h(name)} · ${h(role)}</option>`).join('')}</select>
+       </label>
+       <button class="login-submit" type="submit">Acceder al espacio ${icon('right',18)}</button>
+      </form><p class="environment-explanation">Acceso de desarrollo con datos ficticios guardados en este dispositivo. No es una cuenta real ni una autenticación segura.</p>`:
+      `<form class="login-form" data-form="sign-in" autocomplete="on">
+       <label for="signin-email">Correo electrónico<input id="signin-email" type="email" name="email" placeholder="nombre@tuacademia.es" autocomplete="username" required maxlength="254"></label>
+       <label for="signin-password">Contraseña<input id="signin-password" type="password" name="password" placeholder="Introduce tu contraseña" autocomplete="current-password" required minlength="8"></label>
+       <button class="login-submit" type="submit">Acceder al espacio ${icon('right',18)}</button>
+      </form><p class="environment-explanation">Tu acceso será verificado por el servidor de Unespacio Aula. Si no tienes cuenta, contacta con tu centro.</p>`}
     ${error?`<div class="login-error" role="alert">${icon('info',16)}${h(error)}</div>`:''}
-    ${isDevelopment?`<div class="dev-access"><div class="dev-access-heading"><span class="dev-dot"></span><strong>Cuentas de desarrollo</strong></div><p>Elige un perfil para utilizar el frontend y guardar cambios en este navegador. No es autenticación real.</p><div class="dev-accounts">${choices.map(([id,title,name,description])=>`<button type="button" data-action="dev-sign-in" data-id="${h(id)}" class="dev-account"><span class="dev-account-avatar ${id}">${h(name.split(' ').map(x=>x[0]).join(''))}</span><span><strong>${h(title)}</strong><small>${h(name)} · ${h(description)}</small></span>${icon('right',17)}</button>`).join('')}</div></div>`:
-     `<div class="login-security">${icon('shield',17)} Acceso seguro mediante tu centro. Las credenciales se verificarán en el servidor.</div>`}
-    <p class="login-legal">${isDevelopment?'No introduzcas contraseñas ni datos personales reales: este entorno utiliza únicamente información ficticia.':'Unespacio Aula protege el acceso mediante sesiones del servidor. Si todavía no tienes una cuenta, contacta con tu centro.'}</p>
+    <div class="login-footnote">UNESPACIO AULA <span>·</span> DOCENCIA SIN COMPLICACIONES</div>
    </div></main>
   </div>`;
 }
