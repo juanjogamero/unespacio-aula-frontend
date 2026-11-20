@@ -2,7 +2,7 @@
 
 Aplicación web educativa para **profesores particulares** y **pequeñas academias**. Código frontend modular en TypeScript, sin frameworks ni dependencias de ejecución. Esta es la implementación en curso del producto, no un HTML monolítico.
 
-## Estado del proyecto (0.3.0)
+## Estado del proyecto (0.4.0)
 
 **Implementado:** nueva identidad visual con tipografía IBM Plex, navegación a pantalla completa, dashboard docente revisado, preferencias de densidad y movimiento; navegación y pantallas por perfil; pantalla de inicio de sesión; dashboard docente; clases y temas; materiales (texto, enlace, archivo); actividades; entregas y correcciones; agenda; ficha individual de alumno; creación básica de alumnos y grupos; formularios y diseño adaptable.
 
@@ -77,3 +77,9 @@ scripts/              Compilación, publicación Pages y servidor local
 Revisar [requisitos de seguridad](docs/security.md), [contrato de API](docs/api-contract.md) y [arquitectura](docs/architecture.md) **antes de conectar el VPS**. GitHub Pages no ofrece controles de autenticación de servidores. Nunca utilizar el selector de roles de desarrollo como mecanismo de autorización.
 
 **Alcance MVP:** el documento maestro de producto está en `docs/producto/Documento_maestro_MVP_v2.md`. Precios, prueba gratuita y límites comerciales permanecen como hipótesis. No incluimos IA, pagos, facturación ni videoconferencias.
+
+## Actualización de interfaz 0.4.0
+
+Se ha rediseñado la experiencia del alumno con una portada editorial, una acción principal real, materias diferenciadas, tareas agrupadas por estado y agenda propia. Se ha refinado la tipografía y la jerarquía de las pantallas docentes sin alterar el logotipo. Las acciones dirigen a contenidos reales del `Snapshot`; no se muestran indicadores de progreso ficticios.
+
+Esta fase **no añade autenticación de servidor**: la web pública de GitHub Pages sigue siendo un entorno de desarrollo con registros ficticios y almacenamiento del navegador. No utilizar datos personales reales de menores.
