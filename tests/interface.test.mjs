@@ -21,3 +21,5 @@ test('Las opciones de interfaz solo guardan preferencias de presentación',()=>{
  assert.match(pref,/unespacio\.ui\./);
  assert.doesNotMatch(pref,/password|token|credential|session/i);
 });
+
+test('Los ajustes incluyen un modo opcional de lectura con textos grandes',()=>{const prefs=read('src/core/preferences.ts'),views=read('src/ui/views.ts'),app=read('src/ui/app.ts');assert.match(prefs,/larger-text/);assert.match(views,/Texto más grande/);assert.match(app,/toggle-large-text/);});

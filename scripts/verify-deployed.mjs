@@ -4,7 +4,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 const ROOT_URL='https://juanjogamero.github.io/unespacio-aula-frontend/';
-const RELEASE='0.8.0';
+const RELEASE='0.8.1';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const retry=async (fn,attempts=24)=>{
  let last;for(let n=0;n<attempts;n++){try{const val=await fn();if(val)return val;}catch(e){last=e;}await sleep(4500);}throw last||new Error('La versión publicada no está disponible');};
@@ -49,7 +49,7 @@ try{
  const picture=async(name)=>{
   const overflow=await js('document.documentElement.scrollWidth-window.innerWidth');
   if(overflow>3)throw new Error('Desbordamiento horizontal en '+name+': '+overflow+'px');
-  const cssLoaded=await js("Array.from(document.styleSheets).some(s=>String(s.href||'').includes('refined.css?v=0.8.0'))");
+  const cssLoaded=await js("Array.from(document.styleSheets).some(s=>String(s.href||'').includes('refined.css?v=0.8.1'))");
   if(!cssLoaded)throw new Error('La vista '+name+' no ha cargado CSS 0.7');
   const shot=await command('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
   mkdirSync('qa/screenshots',{recursive:true});
@@ -76,6 +76,17 @@ try{
  await sleep(400);
  await picture('alumno-390');
  await viewport(1440,980);await sleep(400);await picture('alumno-1440');
+ // Prueba de trabajo real: crear ocho sesiones semanales y confirmar la persistencia local.
+ await js("location.hash='#/clases/g1?tab=sesiones';true");
+ await wait("Boolean(document.querySelector('button[data-action=\"new-lesson\"][data-id=\"g1\"]'))");
+ await js("document.querySelector('button[data-action=\"new-lesson\"][data-id=\"g1\"]').click();true");
+ await wait("Boolean(document.querySelector('form[data-form=\"lesson\"]'))");
+ const e2eCreated=await js("(()=>{const form=document.querySelector('form[data-form=\"lesson\"]');form.querySelector('[name=\"subject\"]').value='Sesión de prueba semanal';form.querySelector('[name=\"start\"]').value='2028-04-04T17:00';form.querySelector('[name=\"end\"]').value='2028-04-04T18:00';form.querySelector('[name=\"recurring\"]').checked=true;form.requestSubmit();return true})()");
+ if(!e2eCreated)throw new Error('No se pudo completar el formulario de recurrencia');
+ await wait("(()=>{const raw=localStorage.getItem('unespacio.dev.data.v1');if(!raw)return false;const data=JSON.parse(raw);return data.lessons.filter(l=>l.subject==='Sesión de prueba semanal').length===8})()");
+ const created=await js("JSON.parse(localStorage.getItem('unespacio.dev.data.v1')).lessons.filter(l=>l.subject==='Sesión de prueba semanal').map(l=>l.start)");
+ if(created.length!==8)throw new Error('La agenda no ha conservado ocho sesiones recurrentes');
+ console.log('Prueba funcional correcta: ocho sesiones semanales guardadas y recuperables.');
  console.log('Verificación del despliegue completa.');
 }finally{
  if(ws&&ws.readyState===WebSocket.OPEN)ws.close();
