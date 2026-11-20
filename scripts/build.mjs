@@ -7,6 +7,7 @@ execFileSync('tsc',['-p','tsconfig.json'],{cwd:root,stdio:'inherit'});
 copyFileSync(join(root,'src','styles.css'),join(out,'assets','css','styles.css'));
 copyFileSync(join(root,'src','design.css'),join(out,'assets','css','design.css'));
 copyFileSync(join(root,'src','studio.css'),join(out,'assets','css','studio.css'));
+copyFileSync(join(root,'src','refined.css'),join(out,'assets','css','refined.css'));
 copyFileSync(join(root,'public','index.html'),join(out,'index.html'));
 copyFileSync(join(root,'public','favicon.svg'),join(out,'favicon.svg'));
 if(development){const html=readFileSync(join(out,'index.html'),'utf8').replace('<html lang="es">','<html lang="es" data-environment="development">');writeFileSync(join(out,'index.html'),html);}

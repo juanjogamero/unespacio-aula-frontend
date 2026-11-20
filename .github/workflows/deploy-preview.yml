@@ -24,6 +24,11 @@ jobs:
       - run: npm install --ignore-scripts --no-audit --no-fund
       - run: npm run check
       - run: npm run pages:build
+      - name: Verificar versión y recursos publicados
+        run: |
+          grep -q 'name="ua-release" content="0.7.0"' dist/index.html
+          grep -q 'refined.css?v=0.7.0' dist/index.html
+          test -s dist/assets/css/refined.css
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
