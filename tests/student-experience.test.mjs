@@ -33,7 +33,7 @@ test('Mis tareas distingue pendientes de enviadas',()=>{
 });
 test('La agenda usa sesiones reales, no estadísticas inventadas',()=>{
  const x=studentAgendaPage(snapshot);
- assert.match(x,/Próximas sesiones/);assert.match(x,/Matemáticas/);assert.match(x,/17:00/);
+ assert.match(x,/Calendario/);assert.match(x,/Seleccionar día/);assert.match(x,/data-action="calendar-prev"/);assert.match(x,/Matemáticas/);assert.match(x,/17:00/);
  assert.doesNotMatch(x,/leaderboard|gemas|puntos ganados/i);
 });
 test('La ruta de materias solo existe en perfil alumno',()=>{
@@ -51,11 +51,11 @@ test('Los títulos introducidos por usuarios se escapan en la interfaz',()=>{
 
 test('La planificación y los recursos del alumno tienen estructura compacta y acciones reales',()=>{
  const x=studentHome(snapshot);
- assert.match(x,/study-util-calendar/);
+ assert.match(x,/work-calendar-compact/);
  assert.match(x,/study-util-library/);
- assert.match(x,/1 sesión programada/);
- assert.match(x,/study-util-session-link/);
- assert.match(x,/17:00/);
+ assert.match(x,/work-calendar-grid/);
+ assert.match(x,/data-action="calendar-select"/);
+ assert.match(x,/work-calendar-agenda/);
  assert.match(x,/data-action="material" data-id="m1"/);
  assert.match(x,/APUNTE/);
  assert.doesNotMatch(x,/study-agenda-rail|study-resources-rail|Las próximas<br>clases/);

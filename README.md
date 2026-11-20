@@ -2,9 +2,9 @@
 
 Aplicación web educativa para **profesores particulares** y **pequeñas academias**. Código frontend modular en TypeScript, sin frameworks ni dependencias de ejecución. Esta es la implementación en curso del producto, no un HTML monolítico.
 
-## Estado del proyecto (0.5.0)
+## Estado del proyecto (0.6.0)
 
-**Implementado:** nueva identidad visual con tipografía IBM Plex, navegación a pantalla completa, dashboard docente revisado, preferencias de densidad y movimiento; navegación y pantallas por perfil; pantalla de inicio de sesión; dashboard docente; clases y temas; materiales (texto, enlace, archivo); actividades; entregas y correcciones; agenda; ficha individual de alumno; creación básica de alumnos y grupos; formularios y diseño adaptable.
+**Implementado:** interfaz modular con calendario mensual y semanal interactivo, dashboard docente reorganizado, clases con identidad visual por materia y espacio de temas navegable, navegación a pantalla completa, preferencias de densidad y movimiento; navegación y pantallas por perfil; pantalla de inicio de sesión; dashboard docente; clases y temas; materiales (texto, enlace, archivo); actividades; entregas y correcciones; agenda; ficha individual de alumno; creación básica de alumnos y grupos; formularios y diseño adaptable.
 
 **Pendiente para operar con cuentas reales:** autenticación en el VPS, autorización servidor por organización y rol, base de datos, almacenamiento privado, invitaciones, correo, recuperación de contraseña, políticas de privacidad y pruebas de seguridad integrales.
 
@@ -25,6 +25,9 @@ La experiencia es única, con roles diferentes:
 Los datos ficticios del entorno de desarrollo se guardan **solo en el navegador** (metadatos en `localStorage`, sesión de desarrollo en `sessionStorage`, archivos en IndexedDB), separados de cualquier cuenta real. Esto permite probar la continuidad entre sesiones y los perfiles en el mismo navegador, pero **no habilita seguridad, colaboración entre dispositivos, copias de seguridad ni almacenamiento privado**.
 
 ## Sistema de diseño de esta versión
+
+La actualización 0.6 utiliza una composición distinta para calendario, grupos, temas y entregas, además de pantallas adaptadas para profesor particular y administración. Consulta [los principios de diseño 0.6](docs/design-0.6.md).
+
 
 La UI se compone de `src/styles.css` (componentes y estructura existentes) y `src/design.css` (sistema visual v0.3). El segundo archivo introduce navegación de trabajo a pantalla completa, tipografía más sobria, superficies diferenciadas por contenido y tarjetas con acentos sólidos en lugar de degradados repetidos. El login presenta un formulario que usa la API en producción y un selector de cuentas ficticias solo en desarrollo; no se mezclan ambos modos.
 
@@ -78,7 +81,7 @@ Revisar [requisitos de seguridad](docs/security.md), [contrato de API](docs/api-
 
 **Alcance MVP:** el documento maestro de producto está en `docs/producto/Documento_maestro_MVP_v2.md`. Precios, prueba gratuita y límites comerciales permanecen como hipótesis. No incluimos IA, pagos, facturación ni videoconferencias.
 
-## Actualización de interfaz 0.5.0
+## Actualización de interfaz 0.6.0
 
 Se ha rediseñado la experiencia del alumno con una portada editorial, una acción principal real, materias diferenciadas, tareas agrupadas por estado y agenda propia. Se ha refinado la tipografía y la jerarquía de las pantallas docentes sin alterar el logotipo. Las acciones dirigen a contenidos reales del `Snapshot`; no se muestran indicadores de progreso ficticios.
 

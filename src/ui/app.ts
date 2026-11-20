@@ -4,6 +4,7 @@ import {HttpGateway,HttpError} from '../core/http.js';
 import {h,eDate,eTime,studentName} from './helpers.js';
 import {icon} from './icons.js';
 import {pageView} from './views.js';
+import {calendarChoose,calendarMove,calendarMoveMonth,calendarGoToday,calendarSetView} from './calendar.js';
 import {safeExternalUrl} from '../core/security.js';
 import {applyPreferences,togglePreference} from '../core/preferences.js';
 
@@ -61,6 +62,11 @@ function updateSearch(){if(!snapshot)return;const panel=document.getElementById(
 function validActionTarget(target:EventTarget|null){return target instanceof Element?target.closest<HTMLElement>('[data-action]'):null;}
 appRoot.addEventListener('click',async e=>{const target=validActionTarget(e.target);if(!target){if(menu&&!(e.target instanceof Element&&e.target.closest('.top-dropdown'))){menu=null;render();}return;}
  const action=target.dataset.action||'',id=target.dataset.id||'';
+ if(action==='calendar-prev'||action==='calendar-next'){calendarMove(action==='calendar-next'?1:-1);render();return;}
+ if(action==='calendar-prev-month'||action==='calendar-next-month'){calendarMoveMonth(action==='calendar-next-month'?1:-1);render();return;}
+ if(action==='calendar-today'){calendarGoToday();render();return;}
+ if(action==='calendar-select'){calendarChoose(id);render();return;}
+ if(action==='calendar-view'){calendarSetView(id);render();return;}
  if(action==='close-modal'){closeModal();return;}if(action==='close-menu'){menu=null;render();return;}
  if(action==='toggle-profile'||action==='toggle-notices'){menu=menu===(action==='toggle-profile'?'profile':'notices')?null:action==='toggle-profile'?'profile':'notices';render();return;}
  if(action==='mobile-nav'){document.getElementById('shell')?.classList.toggle('mobile-open');return;}
