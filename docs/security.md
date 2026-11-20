@@ -1,29 +1,32 @@
-# Seguridad — Requisitos y límites de la fase frontend
+# Seguridad · Unespacio Aula frontend 0.2
 
-**No es una certificación ni una auditoría de seguridad.** No exponer datos reales hasta implementar y verificar el servidor.
+Esta documentación no constituye una auditoría ni acredita cumplimiento RGPD.
 
-## Aplicado en este repositorio
+## Dos compilaciones separadas
 
-- Compilación productiva sin selector de rol ni `preview.html` ni `core/preview.js`.
-- Sin autenticación ficticia presentada como real: cuando falla `/me/snapshot` se bloquea el campus.
-- El código no almacena contraseñas, tokens de sesión ni datos educativos en `localStorage`/`sessionStorage`.
-- Solicitudes same-origin, sin incluir tokens en URLs, cookies enviadas por el navegador y cabecera CSRF para mutaciones.
-- Textos de usuarios escapados al pintar HTML. Recursos externos restringidos a URL `http:` o `https:` (no `javascript:` ni `data:`).
-- Límite inicial de 10 MB y extensiones/MIME admitidos para adjuntos en el cliente (debe revalidar el servidor).
-- Servidor de desarrollo con CSP, `nosniff`, protección de iframe, política de permisos y caché desactivada.
-- Sin scripts, paquetes ni fuentes cargados desde terceros en runtime.
-- La vista previa únicamente tiene datos ficticios en memoria y se activa en desarrollo (localhost o archivo local), no en producción.
+1. **Producción (`npm run build`)**: contiene la pantalla de login y `HttpGateway`. Excluye `development.js` y `local-files.js`. Sin conexión al VPS no permite acceder a la plataforma.
+2. **GitHub Pages (`npm run pages:build`)**: compila deliberadamente datos ficticios, acceso a cuentas de desarrollo y persistencia local. Es público, NO autenticado y NO apto para información real de alumnos. La selección de roles no concede permisos reales.
 
-## Obligatorio antes del piloto
+El diseño y los recorridos educativos son los mismos; cambia la fuente de datos y el nivel de acceso. No publicar ni proporcionar claves o tokens en la web estática.
 
-1. **Autenticación del backend**: inicio de sesión con protección antibruteforce, sesiones rotativas, cierre de sesión, restablecimiento, expiración, bloqueo adecuado. Cookies `Secure`, `HttpOnly`, `SameSite` y CSRF completo.
-2. **Autorización de servidor**: comprobar `workspace_id`, rol, matrícula, asignación de profesor y destinatario para cada lectura y mutación, también para archivos y mensajes. Probar aislamiento entre dos academias.
-3. **Base de datos**: claves foráneas, ámbito de organización en cada entidad, migraciones, límites, operaciones transaccionales y copias de seguridad verificadas.
-4. **Adjuntos**: almacenamiento privado, antivirus, inspección de tipo real y tamaño, cuota por centro, nombres aleatorios, descarga autenticada y caducidad de enlaces.
-5. **Despliegue**: HTTPS, HSTS tras confirmar certificados, cabeceras CSP estrictas en Nginx, secreto fuera del frontend y de GitHub, actualizaciones, firewall, usuarios mínimos, logs y monitorización sin datos sensibles.
-6. **Privacidad y menores**: análisis RGPD/LOPDGDD, minimización de datos, bases jurídicas y contratos pertinentes, control de accesos, retención/borrado, exportación, posibles autorizaciones, análisis de riesgos.
-7. **Pruebas**: E2E por rol, pruebas negativas de IDOR/BOLA, CSRF, XSS, permisos, subida de ficheros, errores y accesibilidad. Preparar plan de respuesta a incidencias.
+## Controles ya preparados
 
-## Riesgos residuales
+- Interfaz de login que envía credenciales **solo al backend same-origin** mediante HTTPS.
+- Contrato para CSRF preautenticación (`GET /api/v1/auth/csrf`) y postautenticación; cookies que deberá emitir el servidor como `HttpOnly`, `Secure`, `SameSite`.
+- Cada petición con `credentials:'same-origin'`, `redirect:'error'`, JSON y respuesta esperada.
+- Textos mostrados escapados en HTML; enlaces externos filtrados por protocolo.
+- Validación inicial de puntuaciones y archivos; el servidor será la autoridad.
+- CSP y cabeceras mínimas en el servidor local; configurar Nginx/VPS por separado.
+- En Pages el almacenamiento de desarrollo queda en ese navegador (localStorage, sessionStorage e IndexedDB), jamás en GitHub ni en la API.
 
-El filtrado visual de datos y los checks en `PreviewGateway` son didácticos; cualquier usuario puede inspeccionar el código JavaScript. **No sirven para aislar información real.** El backend deberá devolver solo lo permitido y rechazar todas las operaciones sin autorización, incluso si el cliente se modifica a mano.
+## Obligatorio antes de cuentas reales
+
+- Sesiones reales con protección antibruteforce, recuperación de contraseña, revocación y CSRF completo.
+- Autorización por organización en **cada** endpoint; comprobar matrícula, asignación docente, usuario y rol; pruebas negativas IDOR/BOLA.
+- Base de datos con claves foráneas, migraciones y copias de seguridad.
+- Almacenamiento privado y escaneo de archivos, límites y protección de enlaces de descarga.
+- HTTPS, HSTS tras verificar certificados, seguridad en cabeceras, monitorización, logs sin datos privados y gestión de secretos.
+- Privacidad de menores, RGPD/LOPDGDD, política de retención y derechos de acceso/borrado, revisión legal.
+- Tests E2E y de accesibilidad por rol, incluido acceso desde organizaciones ajenas.
+
+**No usar GitHub Pages como backend ni tratar la elección de cuenta de desarrollo como autenticación.**

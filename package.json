@@ -1,18 +1,18 @@
 {
   "name": "unespacio-aula-frontend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Frontend seguro y accesible de Unespacio Aula",
+  "description": "Frontend real de Unespacio Aula, preparado para la API privada; entorno de desarrollo local aislado",
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "build": "node scripts/build.mjs",
-    "preview:build": "node scripts/build.mjs --preview",
-    "pages:build": "node scripts/build-pages.mjs",
-    "preview": "npm run preview:build && node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
     "test": "npm run build && node --test tests/*.test.mjs",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "dev:build": "node scripts/build.mjs --development",
+    "dev": "npm run dev:build && node scripts/serve.mjs",
+    "pages:build": "node scripts/build-pages.mjs"
   },
   "engines": {
     "node": ">=20"

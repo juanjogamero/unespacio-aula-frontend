@@ -1,4 +1,4 @@
-import type { Gateway,Snapshot,TopicInput,Topic,MaterialInput,AssignmentInput,SubmissionInput,GradeInput,LessonInput,Material } from './types.js';
+import type { Gateway,Snapshot,TopicInput,StudentInput,GroupInput,Topic,MaterialInput,AssignmentInput,SubmissionInput,GradeInput,LessonInput,Material } from './types.js';
 import {safeExternalUrl,validateUpload,clampScore} from './security.js';
 export class HttpError extends Error {constructor(public readonly status:number,message:string){super(message);this.name='HttpError';}}
 const PREFIX='/api/v1';
@@ -26,7 +26,17 @@ function materialPayload(input:MaterialInput):FormData {
  if(input.file){const err=validateUpload(input.file);if(err)throw new Error(err);d.set('file',input.file);}return d;
 }
 export class HttpGateway implements Gateway {
+ async signIn(email:string,password:string){
+  if(!email||!password)throw new HttpError(400,'Introduce tu correo y tu contraseña.');
+  const session=await request<{csrfToken:string}>('/auth/csrf');
+  if(!session?.csrfToken)throw new HttpError(503,'El servidor de autenticación no está configurado.');
+  csrfFromSession=session.csrfToken;
+  await request<void>('/auth/login','POST',{email,password});
+ }
+ async signOut(){await request('/auth/logout','POST');csrfFromSession=null;}
  async getSnapshot(){const snapshot=await request<Snapshot & {csrfToken?:string}>('/me/snapshot');csrfFromSession=snapshot.csrfToken||null;return snapshot;}
+ async createStudent(input:StudentInput){await request('/students','POST',input);}
+ async createGroup(input:GroupInput){await request('/groups','POST',input);}
  async createTopic(input:TopicInput){await request<Topic>('/topics','POST',input);}
  async updateTopic(id:string,input:Pick<Topic,'title'|'description'>){await request(`/topics/${encodeURIComponent(id)}`,'PATCH',input);}
  async addMaterial(input:MaterialInput){await request('/materials','POST',materialPayload(input));}
@@ -35,5 +45,6 @@ export class HttpGateway implements Gateway {
  async grade(input:GradeInput){await request(`/submissions/${encodeURIComponent(input.submissionId)}/grade`,'PATCH',{score:clampScore(input.score),feedback:input.feedback});}
  async saveLesson(input:LessonInput){await request('/lessons','POST',input);}
  async updateLesson(id:string,input:LessonInput){await request(`/lessons/${encodeURIComponent(id)}`,'PATCH',input);}
+ async openSubmission(submission:{id:string}){const result=await request<{url:string}>(`/submissions/${encodeURIComponent(submission.id)}/access`);const url=safeExternalUrl(result.url);return url&&url.startsWith('https://')?url:null;}
  async openMaterial(material:Material){const result=await request<{url:string}>(`/materials/${encodeURIComponent(material.id)}/access`);const url=safeExternalUrl(result.url);return url&&url.startsWith('https://')?url:null;}
 }

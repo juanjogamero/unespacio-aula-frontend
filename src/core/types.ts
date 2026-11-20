@@ -4,11 +4,13 @@ export type Student = { id:string; workspaceId:string; name:string; level:string
 export type Topic = { id:string; groupId:string; title:string; description:string; order:number };
 export type Material = { id:string; groupId?:string; studentId?:string; subject?:string; topicId?:string; title:string; description:string; kind:'link'|'text'|'file'; url?:string; fileName?:string; content?:string };
 export type Assignment = { id:string; groupId?:string; studentId?:string; subject?:string; topicId?:string; title:string; instructions:string; dueDate:string; maxScore:number; createdBy:string };
-export type Submission = { id:string; assignmentId:string; studentId:string; text:string; status:'submitted'|'reviewed'; submittedAt:string; score?:number; feedback?:string };
+export type Submission = { id:string; assignmentId:string; studentId:string; text:string; status:'submitted'|'reviewed'; submittedAt:string; score?:number; feedback?:string; fileName?:string };
 export type Lesson = { id:string; groupId?:string; studentId?:string; subject:string; start:string; end:string; summary?:string; nextStep?:string; preparation?:string; recurring?:boolean };
 export type Notice = { id:string; groupId?:string; title:string; body:string; date:string };
 export type Session = { userId:string; name:string; role:Role; workspaceId:string; workspaceName:string; initials:string };
 export type Snapshot = { session:Session; groups:Group[]; students:Student[]; topics:Topic[]; materials:Material[]; assignments:Assignment[]; submissions:Submission[]; lessons:Lesson[]; notices:Notice[] };
+export type StudentInput = {name:string;level:string;subjects:string[]};
+export type GroupInput = {name:string;subject:string;level:string;teacherId:string;studentIds:string[];color:Group['color'];description:string};
 export type TopicInput = Pick<Topic,'groupId'|'title'|'description'>;
 export type MaterialInput = { groupId?:string; studentId?:string; subject?:string; topicId?:string; title:string; description:string; kind:Material['kind']; url?:string; content?:string; file?:File };
 export type AssignmentInput = { groupId?:string; studentId?:string; subject?:string; topicId?:string; title:string; instructions:string; dueDate:string };
@@ -18,6 +20,8 @@ export type GradeInput = { submissionId:string; score:number;feedback:string };
 export type ApiError = {status:number;message:string};
 export interface Gateway {
  getSnapshot():Promise<Snapshot>;
+ createStudent(input:StudentInput):Promise<void>;
+ createGroup(input:GroupInput):Promise<void>;
  createTopic(input:TopicInput):Promise<void>;
  updateTopic(id:string,input:Pick<Topic,'title'|'description'>):Promise<void>;
  addMaterial(input:MaterialInput):Promise<void>;
@@ -27,4 +31,5 @@ export interface Gateway {
  saveLesson(input:LessonInput):Promise<void>;
  updateLesson(id:string,input:LessonInput):Promise<void>;
  openMaterial?(material:Material):Promise<string|null>;
+ openSubmission?(submission:Submission):Promise<string|null>;
 }

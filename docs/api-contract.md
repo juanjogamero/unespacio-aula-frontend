@@ -1,36 +1,37 @@
-# Contrato inicial de API (propuesta, NO implementado en VPS)
+# Contrato de API del frontend (diseño, pendiente de VPS)
 
-Base `/api/v1` bajo HTTPS y mismo origen. Todas las respuestas JSON de éxito usan un contrato compartido con `types.ts`. Todos los identificadores son opacos y el servidor no acepta `workspaceId` del cliente para autorizar nada.
+API misma procedencia bajo `/api/v1` con TLS. Los IDs, roles y organización se resuelven **en el servidor**, no a partir de parámetros confiados del navegador.
 
-## Sesión y autenticación
+## Autenticación y sesión
 
-- `GET /me/snapshot` → `Snapshot` filtrado por organización y permisos, con propiedad adicional opcional `csrfToken` **solo para el navegador autenticado**. Si no hay sesión: `401`.
-- Inicio de sesión y recuperación de cuenta: **pendientes de definir**. Cookies `HttpOnly; Secure; SameSite=Lax/Strict`, rotación del ID al iniciar sesión y expiración apropiada. No usar JWT en localStorage.
-- `403` para acciones sin permisos y `404` genérico cuando no debe confirmarse la existencia de un recurso ajeno.
-
-## Operaciones que la interfaz ya llama
-
-| Método | Ruta | Función |
+| Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/topics` | Crear tema en clase asignada |
+| GET | `/auth/csrf` | Obtiene `{csrfToken}` para login; prepara cookie preautenticación |
+| POST | `/auth/login` | `{email,password}` con `X-CSRF-Token`, crea cookie de sesión HttpOnly; rotar ID |
+| POST | `/auth/logout` | Revoca sesión/cookie; requiere CSRF |
+| GET | `/me/snapshot` | Devuelve snapshot **filtrado por permisos** y `csrfToken`; 401 sin sesión |
+
+La sesión debe usar `HttpOnly`, `Secure`, `SameSite`, expiración/revocación, protección antbruteforce y permitir restablecer contraseña mediante flujo todavía pendiente de definir.
+
+## Operaciones del frontend
+
+| Método | Ruta | Uso |
+|---|---|---|
+| POST | `/students` | Crear ficha de alumno en la organización autorizada |
+| POST | `/groups` | Crear grupo, con profesor y alumnado (solo administrador) |
+| POST | `/topics` | Crear tema |
 | PATCH | `/topics/:id` | Editar tema |
-| POST | `/materials` | Material con multipart FormData y archivo opcional |
-| GET | `/materials/:id/access` | Obtener URL temporal de descarga/lectura autorizada |
-| POST | `/assignments` | Publicar actividad individual o de grupo |
-| POST | `/assignments/:id/submissions` | Enviar entrega de alumno |
-| PATCH | `/submissions/:id/grade` | Nota 0–10 y devolución |
+| POST | `/materials` | Adjuntar material (multipart); límites y escaneo servidor |
+| GET | `/materials/:id/access` | URL segura de material autorizado |
+| POST | `/assignments` | Publicar actividad individual/grupal |
+| POST | `/assignments/:id/submissions` | Crear entrega de alumno |
+| GET | `/submissions/:id/access` | URL temporal para archivo entregado; autorización |
+| PATCH | `/submissions/:id/grade` | Nota y comentarios (solo docente responsable) |
 | POST | `/lessons` | Registrar sesión |
-| PATCH | `/lessons/:id` | Editar preparación/registro de sesión |
+| PATCH | `/lessons/:id` | Modificar preparación o registro |
 
-Para crear o modificar, enviar cabecera `X-CSRF-Token` obtenida de la sesión; el servidor también debe comprobar cookies, permisos y validación del contenido.
+Todas las mutaciones requieren sesión válida y CSRF. Validar datos y pertenencia a la organización de cada ID. Los formularios aún necesitan acciones de edición/eliminación adicionales y endpoints para miembros, matrículas y recurrencias reales.
 
-## Puntos por cerrar antes de implementar
+## Límites
 
-- Entidades y paginación del snapshot (no devolver todo el centro indefinidamente).
-- Endpoints para CRUD de alumnos, grupos, matrículas, asignación docente y recurrencias.
-- Invitaciones, altas de alumnos, cuentas y restablecimiento de contraseña.
-- Política de adjuntos: virus, tamaño, tipo real, cuotas, almacenamiento privado, auditoría y eliminación.
-- Entregas con archivos, revisión, cambios posteriores al plazo y visibilidad de calificaciones.
-- Límites de solicitudes, logs sin datos personales, eliminaciones y exportación.
-
-**Importante:** el frontend realiza validaciones tempranas para usabilidad; el backend debe repetir toda validación y verificar autorización en cada operación. Nunca deducir el rol a partir de un parámetro del navegador.
+No hay servidor implementado en este repositorio. El entorno de desarrollo es una implementación de navegador aislada, no una API ni almacenamiento entre usuarios reales.
